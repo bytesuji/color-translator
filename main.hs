@@ -1,15 +1,12 @@
 import Data.List
-import Data.List.Split
 import System.IO
 import System.Environment
 
 
 main = do -- FIXME: handle no such file, too few args
-    (inputFile:outputFile:_) <- getArgs
-    contents <- readFile inputFile
-    let colors = map (getColor contents) [0..7]
-            -- halfPalette = intercalate ":" colors
-    print colors
+    (inputFile:_) <- getArgs
+    contents <- readFile inputFile 
+    putStrLn $ producePalette contents
 
 
 getColor :: String -> Int -> String
@@ -29,3 +26,10 @@ getBase baseName fileContents =
             Just index -> index + 1
             Nothing -> (-1) --- FIXME: actual error handling    
         in splitContents !! colorIndex
+    
+
+producePalette :: String -> String
+producePalette fileContents = 
+    intercalate ":" . take 2 . repeat . intercalate ":" $ colors
+    where colors = map (getColor fileContents) [0..7] 
+    -- this is my masterpiece
