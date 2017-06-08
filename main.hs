@@ -7,12 +7,13 @@ import System.Environment
 main = do -- FIXME: handle no such file, too few args
     (inputFile:outputFile:_) <- getArgs
     contents <- readFile inputFile
-    let color0 = getColor 0 contents 
-    print color0
+    let colors = map (getColor contents) [0..7]
+            -- halfPalette = intercalate ":" colors
+    print colors
 
 
-getColor :: Int -> String -> String
-getColor n fileContents = 
+getColor :: String -> Int -> String
+getColor fileContents n = 
     let splitContents = words fileContents 
         searchString = "*.color" ++ (show n) ++ ":"
         baseIndex = case (elemIndex searchString splitContents) of
