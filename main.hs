@@ -4,10 +4,9 @@ import System.IO
 import System.Environment
 
 
-main = do
+main = do -- FIXME: handle no such file, too few args
     (inputFile:outputFile:_) <- getArgs
     contents <- readFile inputFile
-    --print $ words contents 
     let color0 = getColor 0 contents 
     print color0
 
@@ -15,8 +14,17 @@ main = do
 getColor :: Int -> String -> String
 getColor n fileContents = 
     let splitContents = words fileContents 
-        searchString = "*.color:" ++ (show n)
-        colorIndex = case (elemIndex searchString splitContents) of
+        searchString = "*.color" ++ (show n) ++ ":"
+        baseIndex = case (elemIndex searchString splitContents) of
             Just index -> index + 1
-            Nothing -> 0
-    in searchString
+            Nothing -> (-1) --- FIXME: actual error handling
+    in getBase (splitContents !! baseIndex) fileContents
+
+
+getBase :: String -> String -> String
+getBase baseName fileContents =
+    let splitContents = words fileContents 
+        colorIndex = case (elemIndex baseName splitContents) of
+            Just index -> index + 1
+            Nothing -> (-1) --- FIXME: actual error handling    
+        in splitContents !! colorIndex
