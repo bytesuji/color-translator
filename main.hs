@@ -1,11 +1,16 @@
 import Data.List
 import System.IO
+import System.Exit
 import System.Environment
+import Control.Exception
 
-
-main = do -- FIXME: handle no such file, too few args
+main = do
     (inputFile:_) <- getArgs
-    contents <- readFile inputFile 
+    contents <-
+        catch (readFile inputFile)
+              (\e -> do let err = show (e :: IOException)
+                        die ("Warning: Could not open " ++ inputFile ++ ": " ++ err)) 
+    let profile = produceFullProfile contents
     putStrLn $ "Generated profile:\n\n" ++ produceFullProfile contents
 
 
@@ -19,15 +24,6 @@ getColor fileContents n =
     in getBase (splitContents !! baseIndex) fileContents
 
 
-getBase :: String -> String -> String
-getBase baseName fileContents =
-    let splitContents = words fileContents 
-        colorIndex = case (elemIndex baseName splitContents) of
-            Just index -> index + 1
-            Nothing -> (-1) --- FIXME: actual error handling    
-    in splitContents !! colorIndex
-
-
 genericPlusSearch :: String -> Int -> String -> String
 genericPlusSearch searchTerm plus fileContents = 
     let splitContents = words fileContents
@@ -35,6 +31,10 @@ genericPlusSearch searchTerm plus fileContents =
             Just index -> index + plus
             Nothing -> (-1) -- FIXME
     in splitContents !! resultIndex
+
+
+getBase :: String -> String -> String
+getBase baseName fileContents = genericPlusSearch baseName 1 fileContents
     
     
 producePalette :: String -> String
@@ -56,7 +56,7 @@ produceFullProfile fileContents =
     "  show_titlebar = false\n"                 ++
     "  use_system_font = False"
     where 
-    name = "Base16-" ++ genericPlusSearch "Base16" 1 fileContents
-    bg = (flip getBase) fileContents . genericPlusSearch "*.background:" 4 $ fileContents
-    fg = (flip getBase) fileContents . genericPlusSearch "*.foreground:" 1 $ fileContents
-    palette = producePalette fileContents
+        name = "Base16-" ++ genericPlusSearch "Base16" 1 fileContents
+        bg = (flip getBase) fileContents . genericPlusSearch "*.background:" 4 $ fileContents
+        fg = (flip getBase) fileContents . genericPlusSearch "*.foreground:" 1 $ fileContents
+        palette = producePalette fileContents
